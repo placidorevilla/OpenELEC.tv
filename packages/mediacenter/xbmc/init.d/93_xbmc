@@ -73,6 +73,11 @@ fi
   LOCKFILE="xbmc.disabled"
   [ -f "$LOCKDIR/$LOCKFILE" ] && rm -f "$LOCKDIR/$LOCKFILE" &
 
+# run the autostop script when shutting down or rebooting
+  AUTOSTOP="/storage/.config/autostop.sh"
+  AUTOSTOPLOCK="autostop.lock"
+  [ -f "$LOCKDIR/$AUTOSTOPLOCK" ] && rm -f "$LOCKDIR/$AUTOSTOPLOCK" &
+
 # starting XBMC
   usleep $XBMC_STARTDELAY
   while true; do
@@ -86,18 +91,21 @@ fi
 
     case "$RET" in
       0)
+	    [ -f "$AUTOSTOP" -a ! -f "$LOCKDIR/$AUTOSTOPLOCK" ] && sh "$AUTOSTOP" poweroff && touch "$LOCKDIR/$AUTOSTOPLOCK"
         if [ ! $(pidof console-kit-daemon) ]; then
           touch "$LOCKDIR/$LOCKFILE"
           poweroff -f
         fi
         ;;
       64)
+	    [ -f "$AUTOSTOP" -a ! -f "$LOCKDIR/$AUTOSTOPLOCK" ] && sh "$AUTOSTOP" poweroff && touch "$LOCKDIR/$AUTOSTOPLOCK"
         if [ ! $(pidof console-kit-daemon) ]; then
           touch "$LOCKDIR/$LOCKFILE"
           poweroff -f
         fi
         ;;
       66)
+	    [ -f "$AUTOSTOP" -a ! -f "$LOCKDIR/$AUTOSTOPLOCK" ] && sh "$AUTOSTOP" reboot && touch "$LOCKDIR/$AUTOSTOPLOCK"
         if [ ! $(pidof console-kit-daemon) ]; then
           touch "$LOCKDIR/$LOCKFILE"
           reboot
